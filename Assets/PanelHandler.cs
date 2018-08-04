@@ -29,6 +29,11 @@ public class PanelHandler : MonoBehaviour {
             }
             Hide();
         }
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Hide();
+        }
+
 	}
 
     public void Show(CellHandler clickedCell)

@@ -26,6 +26,33 @@ public class Config
     public int RowCount = 0;
     public int ColCount = 0;
     public List<Layer> layers = new List<Layer>();
+
+    public Config()
+    {
+        
+    }
+
+    public Config(int row, int col)
+    {
+        RowCount = row;
+        ColCount = col;
+        var layer1 = new Layer();
+        var layer2 = new Layer();
+        for (int r = 0; r < row; r++)
+        {
+            var rowData1 = new List<int>();
+            var rowData2 = new List<int>();
+            for (int c = 0; c < col; c++)
+            {
+                rowData1.Add(0);
+                rowData2.Add(0);
+            }
+            layer1.data.Add(rowData1);
+            layer2.data.Add(rowData2);
+        }
+        layers.Add(layer1);
+        layers.Add(layer2);
+    }
  
     public static Config Deserialize(string str)
     {
@@ -151,6 +178,7 @@ public class Manager : MonoBehaviour {
             Root = new GameObject("Root");
         }
         Panel.manager = this;
+        mode = copySpriteMode;
 	}
 	
     void Export()
@@ -163,38 +191,44 @@ public class Manager : MonoBehaviour {
 
     void OnButtonClick()
     {
-        var config = Config.Deserialize(@"[layer]
-type=Tile Layer 1
-data=
-0,1,1,1,1,1,1,1,1,1,0,
-0,1,0,0,0,0,0,0,0,1,0,
-0,1,0,0,0,0,0,0,0,1,0,
-0,1,1,1,1,1,1,1,1,1,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0.
-[layer]
-type=Tile Layer 2
-data=
-0,9,9,9,9,9,9,9,9,9,0,
-0,11,0,0,0,0,0,0,0,11,0,
-0,11,0,0,0,0,0,0,0,11,0,
-0,9,9,9,9,9,9,9,9,9,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0.");
+        //        var config = Config.Deserialize(@"[layer]
+        //type=Tile Layer 1
+        //data=
+        //0,1,1,1,1,1,1,1,1,1,0,
+        //0,1,0,0,0,0,0,0,0,1,0,
+        //0,1,0,0,0,0,0,0,0,1,0,
+        //0,1,1,1,1,1,1,1,1,1,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0.
+        //[layer]
+        //type=Tile Layer 2
+        //data=
+        //0,9,9,9,9,9,9,9,9,9,0,
+        //0,11,0,0,0,0,0,0,0,11,0,
+        //0,11,0,0,0,0,0,0,0,11,0,
+        //0,9,9,9,9,9,9,9,9,9,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0,
+        //0,0,0,0,0,0,0,0,0,0,0.");
+        int row = 0;
+        int col = 0;
+        int.TryParse(RowInput.text, out row);
+        int.TryParse(ColInput.text, out col);
+        var _config = new Config(row, col);
+        this.config = _config;
+        DrawDrid(this.config);
 
-        DrawDrid(config);
+        InitSelectItems();
 
-        this.config = config;
     }
 
     void DrawCell(int row, int col, int layer1, int layer2)
@@ -210,6 +244,9 @@ data=
         cellHandler.Row = row;
         cellHandler.Col = col;
         cellMap[row, col] = cellHandler;
+
+        UpdateCell(row, col);
+
     }
 
 
@@ -229,20 +266,20 @@ data=
             }
         }
 
-        float width = 1280;
-        float height = 720;
+        float width = 1100;
+        float height = 600;
 
         float totalWidth = ColCount * 100;
         float totalHeight = RowCount * 100;
 
-        var scale = Mathf.Min(width/totalWidth, height/totalHeight);
+        var scale = Mathf.Min(width / totalWidth, height / totalHeight);
+        scale = Mathf.Min(1.0f, scale);
         var x = (totalWidth * scale) / 2;
         var y = (totalHeight * scale) / 2 - 50;
 
         Root.transform.localScale = Vector3.one * scale;
         var trans = Root.GetComponent<RectTransform>();
         trans.localPosition = new Vector3(-x, y, 0);
-
 
     }
 
@@ -270,23 +307,47 @@ data=
         startDragCol = col;
     }
 
+    void CopyValueModeEnterCell(int row, int col)
+    {
+        Debug.Log("CopyModeEnterCell");
+        //var source1 = config.layers[0].data[startDragRow][startDragCol];
+        var source2 = config.layers[1].data[startDragRow][startDragCol];
+
+        //config.layers[0].data[row][col] = source1;
+        config.layers[1].data[row][col] = source2;
+
+        UpdateCell(row, col);
+    }
+
+    void CopySpriteModeEnterCell(int row, int col)
+    {
+        Debug.Log("BrushModeEnterCell");
+        config.layers[0].data[row][col] = seletectedId;
+        UpdateCell(row, col);
+    }
+
     public void OnEnterCell(int row, int col)
     {
-        if (row == startDragRow && col == startDragCol)
-        {
-            return;
-        }
 
         if (startDragRow == -1 || startDragCol == -1)
         {
             return;
         }
 
-        var source1 = config.layers[0].data[startDragRow][startDragCol];
-        var source2 = config.layers[1].data[startDragRow][startDragCol];
+        if (IsCopyValueMode())
+        {
+            CopyValueModeEnterCell(row, col);
+        }
+        else
+        {
+            CopySpriteModeEnterCell(row, col);
+        }
+    }
 
-        config.layers[0].data[row][col] = source1;
-        config.layers[1].data[row][col] = source2;
+    void UpdateCell(int row, int col)
+    {
+        var source1 = config.layers[0].data[row][col];
+        var source2 = config.layers[1].data[row][col];
 
         cellMap[row, col].SetSprite(source1);
         cellMap[row, col].SetValue(source2);
@@ -296,5 +357,55 @@ data=
     {
         startDragRow = -1;
         startDragCol = -1;
+    }
+
+    int seletectedId = 0;
+    public void SetCurrentSelectedId(int id)
+    {
+        seletectedId = id;   
+    }
+
+    void InitSelectItems()
+    {
+        var prefab = Resources.Load<GameObject>("ChooseItem");
+        var content = GameObject.Find("Canvas/Scroll View/Viewport/Content");
+        for (int i = 0; i <= 24; i++)
+        {
+            var go = Instantiate(prefab);
+            var handler = go.GetComponent<ChooseItemHandler>();
+            handler.id = i;
+            handler.manager = this;
+
+            go.transform.SetParent(content.transform, false);
+        }
+    }
+
+    public int mode = 1;
+    const int copySpriteMode = 1;
+    const int copyValueMode = 0;
+
+    public bool IsCopySpriteMode()
+    {
+        return mode == copySpriteMode;
+    }
+
+    public bool IsCopyValueMode()
+    {
+        return mode == copyValueMode;
+    }
+
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            mode = copyValueMode;
+            Debug.Log("111");
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            Debug.Log("222");
+            mode = copySpriteMode;
+        }
     }
 }
