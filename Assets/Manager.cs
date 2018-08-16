@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
+using System.IO;
 
 public class Config
 {
@@ -13,6 +14,9 @@ public class Config
         public List<List<int>> data = new List<List<int>>();
         public void AddRowData(string data)
         {
+            if (data.Length == 0)
+                return;
+            
             var numbers = data.Substring(0, data.Length - 1).Split(',');
             var list = new List<int>();
             for (int i = 0; i < numbers.Length; i++)
@@ -153,8 +157,10 @@ public class Manager : MonoBehaviour {
     public InputField ColInput;
     public Button ApplyButton;
     public Button ExportButton;
+    public Button LoadButton;
 
     GameObject cell;
+    GameObject text;
     GameObject Root;
     public PanelHandler Panel;
     public InputField ValueInput;
@@ -169,9 +175,11 @@ public class Manager : MonoBehaviour {
 	void Start () {
         ApplyButton.onClick.AddListener(OnButtonClick);
         ExportButton.onClick.AddListener(Export);
+        LoadButton.onClick.AddListener(Load);
         RowInput.text = "0";
         ColInput.text = "0";
         cell = Resources.Load("Cell") as GameObject;
+        text = Resources.Load("Text") as GameObject;
         Root = GameObject.Find("Root");
         if (Root == null)
         {
@@ -180,12 +188,24 @@ public class Manager : MonoBehaviour {
         Panel.manager = this;
         mode = copySpriteMode;
 	}
+
+    void Load()
+    {
+        var path = UnityEditor.EditorUtility.OpenFilePanel("", Application.persistentDataPath, "txt");
+        Debug.Log(path);
+        var contents = File.ReadAllText(path);
+        config = Config.Deserialize(contents);
+
+        DrawDrid(config);
+        InitSelectItems();
+    }
 	
     void Export()
     {
         if (config != null)
         {
-            Debug.Log(config.Serialize());
+            var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", Application.persistentDataPath, "Level", "txt");
+            File.WriteAllText(path, config.Serialize());
         }
     }
 
@@ -249,6 +269,13 @@ public class Manager : MonoBehaviour {
 
     }
 
+    void DrawNumber(int row, int col, int number)
+    {
+        var go = Instantiate<GameObject>(text);
+        go.transform.position = new Vector2(col, row * -1) * 100;
+        go.transform.SetParent(Root.transform, false);
+        go.GetComponent<Text>().text = number.ToString();
+    }
 
     void DrawDrid(Config config)
     {
@@ -260,10 +287,17 @@ public class Manager : MonoBehaviour {
 
         for (int row = 0; row < RowCount; row++)
         {
+            DrawNumber(row, -1, RowCount - row);
+
             for (int col = 0; col < ColCount; col++)
             {
                 DrawCell(row, col, config.layers[0].data[row][col], config.layers[1].data[row][col]);
             }
+        }
+
+        for (int col = 0; col < ColCount; col++)
+        {
+            DrawNumber(RowCount, col, col + 1);
         }
 
         float width = 1100;
