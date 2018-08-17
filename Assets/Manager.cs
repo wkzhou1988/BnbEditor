@@ -191,8 +191,13 @@ public class Manager : MonoBehaviour {
 
     void Load()
     {
-        var path = UnityEditor.EditorUtility.OpenFilePanel("", Application.persistentDataPath, "txt");
+        var path = UnityEditor.EditorUtility.OpenFilePanel("", "D:/BnbLevels", "txt");
         Debug.Log(path);
+        if (path.Length == 0)
+        {
+            Debug.Log("nothing seletect");
+            return;
+        }
         var contents = File.ReadAllText(path);
         config = Config.Deserialize(contents);
 
@@ -204,7 +209,7 @@ public class Manager : MonoBehaviour {
     {
         if (config != null)
         {
-            var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", Application.persistentDataPath, "Level", "txt");
+            var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", "D:/BnbLevels", "Level", "txt");
             File.WriteAllText(path, config.Serialize());
         }
     }
