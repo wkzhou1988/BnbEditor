@@ -1195,7 +1195,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u5BFC\u51FA\u5230D:/level/Daochu.txt\n\u8BFB\u53D6\u4ECED:/level/Duqu.txt"
+  m_Text: "\u5BFC\u51FA\u5230D:/level/daochu/Daochu.txt\n\u8BFB\u53D6\u4ECED:/level/duqu/Duqu.txt"
 --- !u!222 &1217200812
 CanvasRenderer:
   m_ObjectHideFlags: 0
