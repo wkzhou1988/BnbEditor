@@ -198,7 +198,7 @@ public class Manager : MonoBehaviour {
         //    Debug.Log("nothing seletect");
         //    return;
         //}
-        var path = "D:/Duqu.txt";
+        var path = "D:/level/Duqu.txt";
         var contents = File.ReadAllText(path);
         config = Config.Deserialize(contents);
 
@@ -211,7 +211,7 @@ public class Manager : MonoBehaviour {
         if (config != null)
         {
             //var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", "D:/BnbLevels", "Level", "txt");
-            var path = "D:/Daochu.txt";
+            var path = "D:/level/Daochu.txt";
             File.WriteAllText(path, config.Serialize());
         }
     }
