@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Linq;
 
 public class Config
 {
@@ -198,7 +199,7 @@ public class Manager : MonoBehaviour {
         //    Debug.Log("nothing seletect");
         //    return;
         //}
-        var path = "D:/level/duqu/Duqu.txt";
+        var path = "D:/Codez/duqu.txt";
         var contents = File.ReadAllText(path);
         config = Config.Deserialize(contents);
 
@@ -211,7 +212,7 @@ public class Manager : MonoBehaviour {
         if (config != null)
         {
             //var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", "D:/BnbLevels", "Level", "txt");
-            var path = "D:/level/daochu/Daochu.txt";
+            var path = "D:/Codez/Daochu.txt";
             File.WriteAllText(path, config.Serialize());
         }
     }
@@ -246,15 +247,68 @@ public class Manager : MonoBehaviour {
         //0,0,0,0,0,0,0,0,0,0,0,
         //0,0,0,0,0,0,0,0,0,0,0,
         //0,0,0,0,0,0,0,0,0,0,0.");
-        int row = 0;
-        int col = 0;
-        int.TryParse(RowInput.text, out row);
-        int.TryParse(ColInput.text, out col);
-        var _config = new Config(row, col);
-        this.config = _config;
-        DrawDrid(this.config);
+        if (this.config == null)
+        {
+        	int row = 0;
+	        int col = 0;
+	        int.TryParse(RowInput.text, out row);
+	        int.TryParse(ColInput.text, out col);
+	        var _config = new Config(row, col);
+	        this.config = _config;
+	        DrawDrid(this.config);
 
-        InitSelectItems();
+	        InitSelectItems();
+        }
+        else //已有config,在上面加一行/列。
+        {
+        	int row = 0;
+	        int.TryParse(RowInput.text, out row);
+	        
+	        //加新的
+	        for (int r = this.config.RowCount; r < row; r++)
+	        {
+	            var rowData1 = new List<int>();
+	            var rowData2 = new List<int>();
+	            for (int c = 0; c < this.config.ColCount; c++)
+	            {
+	                rowData1.Add(0);
+	                rowData2.Add(0);
+	            }
+	            this.config.layers[0].data.Add(rowData1);
+	            this.config.layers[1].data.Add(rowData2);
+	        }
+
+	        //移动一下
+	        int delta = row - this.config.RowCount;
+	        for (int r = row-1; r >=0 ; r--)
+	        {
+	        	if(r<delta){
+	        		//Debug.Log("empty");
+	        		var rowData1 = new List<int>();
+	            	var rowData2 = new List<int>();
+		           	for (int c = 0; c < this.config.ColCount; c++)
+		            {
+		                rowData1.Add(0);
+		                rowData2.Add(0);
+		            }
+	            	this.config.layers[0].data[r] = rowData1;
+            		this.config.layers[1].data[r] = rowData2;
+	        	}
+	        	else
+	        	{
+	        		//Debug.Log("copy from " + r + " to " + (r-delta));
+	        		this.config.layers[0].data[r] = this.config.layers[0].data[r-delta]; 
+	        		this.config.layers[1].data[r] = this.config.layers[1].data[r-delta];
+	        	}
+	        }
+
+	        this.config.RowCount = row;
+        	ClearNumer();
+
+	        DrawDrid(this.config);
+
+	        InitSelectItems();
+        }
 
     }
 
@@ -276,11 +330,21 @@ public class Manager : MonoBehaviour {
 
     }
 
+    void ClearNumer()
+    {
+    	//Debug.Log(Root);
+    	foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "number"))
+    	{
+    		Destroy(go);
+    	}
+    }
+
     void DrawNumber(int row, int col, int number)
     {
         var go = Instantiate<GameObject>(text);
         go.transform.position = new Vector2(col, row * -1) * 100;
         go.transform.SetParent(Root.transform, false);
+        go.name = "number";
         go.GetComponent<Text>().text = number.ToString();
     }
 
@@ -343,7 +407,7 @@ public class Manager : MonoBehaviour {
 
     public void TryStartDrag(int row, int col)
     {
-        Debug.Log("TryStartDrag " + row + " " + col);
+        //Debug.Log("TryStartDrag " + row + " " + col);
         startDragRow = row;
         startDragCol = col;
     }
@@ -406,12 +470,13 @@ public class Manager : MonoBehaviour {
         seletectedId = id;   
     }
 
-    const int MAX_ITEMS = 31;
-
     void InitSelectItems()
     {
         var prefab = Resources.Load<GameObject>("ChooseItem");
         var content = GameObject.Find("Canvas/Scroll View/Viewport/Content");
+
+        const int MAX_ITEMS = 31;
+
         for (int i = 0; i <= MAX_ITEMS; i++)
         {
             var go = Instantiate(prefab);
