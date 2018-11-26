@@ -406,11 +406,13 @@ public class Manager : MonoBehaviour {
         seletectedId = id;   
     }
 
+    const int MAX_ITEMS = 31;
+
     void InitSelectItems()
     {
         var prefab = Resources.Load<GameObject>("ChooseItem");
         var content = GameObject.Find("Canvas/Scroll View/Viewport/Content");
-        for (int i = 0; i <= 24; i++)
+        for (int i = 0; i <= MAX_ITEMS; i++)
         {
             var go = Instantiate(prefab);
             var handler = go.GetComponent<ChooseItemHandler>();
