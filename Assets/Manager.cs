@@ -199,10 +199,11 @@ public class Manager : MonoBehaviour {
         //    Debug.Log("nothing seletect");
         //    return;
         //}
-        var path = "D:/Codez/duqu.txt";
+        var path = "D:/BnBlevel/duqu.txt";
         var contents = File.ReadAllText(path);
         config = Config.Deserialize(contents);
-
+		
+		ClearAll();
         DrawDrid(config);
         InitSelectItems();
     }
@@ -212,7 +213,7 @@ public class Manager : MonoBehaviour {
         if (config != null)
         {
             //var path = UnityEditor.EditorUtility.SaveFilePanel("Test.txt", "D:/BnbLevels", "Level", "txt");
-            var path = "D:/Codez/Daochu.txt";
+            var path = "D:/BnBlevel/Daochu.txt";
             File.WriteAllText(path, config.Serialize());
         }
     }
@@ -283,7 +284,7 @@ public class Manager : MonoBehaviour {
 	        for (int r = row-1; r >=0 ; r--)
 	        {
 	        	if(r<delta){
-	        		//Debug.Log("empty");
+	        		Debug.Log("empty");
 	        		var rowData1 = new List<int>();
 	            	var rowData2 = new List<int>();
 		           	for (int c = 0; c < this.config.ColCount; c++)
@@ -296,14 +297,14 @@ public class Manager : MonoBehaviour {
 	        	}
 	        	else
 	        	{
-	        		//Debug.Log("copy from " + r + " to " + (r-delta));
+	        		Debug.Log("copy from " + (r-delta) + " to " + r);
 	        		this.config.layers[0].data[r] = this.config.layers[0].data[r-delta]; 
 	        		this.config.layers[1].data[r] = this.config.layers[1].data[r-delta];
 	        	}
 	        }
 
 	        this.config.RowCount = row;
-        	ClearNumer();
+        	ClearAll();
 
 	        DrawDrid(this.config);
 
@@ -317,7 +318,7 @@ public class Manager : MonoBehaviour {
         var go = Instantiate<GameObject>(cell);
         go.transform.position = new Vector2(col, row * -1) * 100;
         go.transform.SetParent(Root.transform, false);
-        go.name = string.Format("{0},{1}", row, col);
+        go.name = string.Format("cell{0},{1}", row, col);
         go.transform.Find("Text").GetComponent<Text>().text = layer2.ToString();
         go.GetComponent<CellHandler>().manager = this;
 
@@ -330,11 +331,14 @@ public class Manager : MonoBehaviour {
 
     }
 
-    void ClearNumer()
+    void ClearAll()
     {
     	//Debug.Log(Root);
     	foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "number"))
     	{
+    		Destroy(go);
+    	}
+    	foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name.Contains("cell"))){
     		Destroy(go);
     	}
     }
@@ -346,6 +350,7 @@ public class Manager : MonoBehaviour {
         go.transform.SetParent(Root.transform, false);
         go.name = "number";
         go.GetComponent<Text>().text = number.ToString();
+        go.GetComponent<Text>().color = Color.black;
     }
 
     void DrawDrid(Config config)
@@ -474,7 +479,10 @@ public class Manager : MonoBehaviour {
     {
         var prefab = Resources.Load<GameObject>("ChooseItem");
         var content = GameObject.Find("Canvas/Scroll View/Viewport/Content");
-        for (int i = 0; i <= 31; i++)
+
+        const int MAX_ITEMS = 61;
+
+        for (int i = 0; i <= MAX_ITEMS; i++)
         {
             var go = Instantiate(prefab);
             var handler = go.GetComponent<ChooseItemHandler>();
