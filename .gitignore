@@ -2,7 +2,8 @@ Build/
 .vs/
 Library/
 Temp/
+[Ee]xp/
+[Oo]bj/
 *.csproj
 *.sln
 *.rar
-Exp/Editor.exe
